@@ -9,45 +9,55 @@ Save and submit the completed file for your homework submission.
 ### Step 1: Create, Extract, Compress, and Manage tar Backup Archives
 
 1. Command to **extract** the `TarDocs.tar` archive to the current directory:
+~/Downloads$ tar -xvf TarDocs.tar TarDocs && sudo mv TarDocs ../project
 
-2. Command to **create** the `Javaless_Doc.tar` archive from the `TarDocs/` directory, while excluding the `TarDocs/Documents/Java` directory:
+2. Command to **create** the `Javaless_Doc.tar` archive from the `TarDocs/` directory, while excluding the `TarDocs/Documents/Java` directory: tar -cvf Javaless_Docs.tar --exclude="Java" TarDocs
 
 3. Command to ensure `Java/` is not in the new `Javaless_Docs.tar` archive:
-
+tar --list -f Javaless_Docs.tar | grep Java
 **Bonus** 
-- Command to create an incremental archive called `logs_backup.tar.gz` with only changed files to `snapshot.file` for the `/var/log` directory:
+- Command to create an incremental archive called `logs_backup.tar.gz` with only changed files to `snapshot.file` for the `/var/log` directory: sudo tar -cvzf logs_backup.tar.gz --listed-incremental=snapshot.file /var/log/
+
 
 #### Critical Analysis Question
 
 - Why wouldn't you use the options `-x` and `-c` at the same time with `tar`?
-
+-x is used to extract while -c option is used to create. two very different uses that don't work with each other
 ---
 
 ### Step 2: Create, Manage, and Automate Cron Jobs
 
 1. Cron job for backing up the `/var/log/auth.log` file:
-
+crontab -e 
+0 6 * * 3 tar -cvzf /auth_backup.tgz /var/log/auth.log
+exit and save 
+crontab -l to list 
 ---
 
 ### Step 3: Write Basic Bash Scripts
 
-1. Brace expansion command to create the four subdirectories:
+1. Brace expansion command to create the four subdirectories:s 
+~/backups$ sudo mkdir -p ~/projects/backups/{freemem,diskuse,openlist,freedisk}
 
 2. Paste your `system.sh` script edits below:
 
     ```bash
     #!/bin/bash
-    [Your solution script contents here]
+  free -mh > /home/sysadmin/projects/backups/freemem/free_mem.txt
+  df -h > /home/sysadmin/projects/backups/freedisk/free_disk.txt
+  lsof > /home/sysadmin/projects/backups/openlist/open_list.txt
+  du -h > /home/sysadmin/projects/backups/diskuse/disk_usage.txt
+
     ```
 
 3. Command to make the `system.sh` script executable:
-
+sudo chmod +x system.sh
 **Optional**
 - Commands to test the script and confirm its execution:
-
+(sudo if need) ./system.sh
 **Bonus**
 - Command to copy `system` to system-wide cron directory:
-
+cp or mv system.sh /etc/cron.weekly/
 ---
 
 ### Step 4. Manage Log File Sizes
@@ -59,20 +69,29 @@ Save and submit the completed file for your homework submission.
     - Add your config file edits below:
 
     ```bash
-    [Your logrotate scheme edits here]
+    [37  /var/log/auth.log {
+38         rotate 7
+39         weekly
+40         notifempty
+41         missingok
+42         delaycompress
+43         endscript
+44 }
+]
     ```
 ---
 
 ### Bonus: Check for Policy and File Violations
 
-1. Command to verify `auditd` is active:
+1. Command to verify `auditd` is active: systemctl status auditd.servive
 
 2. Command to set number of retained logs and maximum log file size:
 
     - Add the edits made to the configuration file below:
 
     ```bash
-    [Your solution edits here]
+    [max_log_file = 35
+    num_ logs = 7]
     ```
 
 3. Command using `auditd` to set rules for `/etc/shadow`, `/etc/passwd` and `/var/log/auth.log`:
@@ -80,15 +99,16 @@ Save and submit the completed file for your homework submission.
 
     - Add the edits made to the `rules` file below:
 
-    ```bash
-    [Your solution edits here]
+    ```bash [
+-w /etc/shadow -p wra -k shadow_audit
+-w /etc/passwd -p wra -k passwd_audit ]
     ```
 
-4. Command to restart `auditd`:
+4. Command to restart `auditd`: systemctl restart auditd
 
-5. Command to list all `auditd` rules:
+5. Command to list all `auditd` rules: auditctl -l
 
-6. Command to produce an audit report:
+6. Command to produce an audit report:aureprot -au, aureport -m
 
 7. Create a user with `sudo useradd attacker` and produce an audit report that lists account modifications:
 
